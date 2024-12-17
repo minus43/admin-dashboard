@@ -8,93 +8,72 @@ import {
   TableRow,
   Paper,
   Button,
+  FormControl,
+  Select,
+  MenuItem,
   Dialog,
   DialogTitle,
   DialogContent,
   DialogActions,
-  TextField,
-  Select,
-  MenuItem,
-  FormControl,
-  InputLabel,
-  Grid
+  Typography,
+  Box,
+  Alert
 } from '@mui/material';
+import NotificationsIcon from '@mui/icons-material/Notifications';
 
 function InventoryManagement() {
   const [products, setProducts] = useState([
     {
       id: 1,
       name: '기본 티셔츠',
+      seller: '좋은회사',
       category: '의류',
       price: 29000,
-      stock: 100,
-      status: '판매중'
+      stock: 5,
+      status: '판매중',
+      minStock: 10
     },
     {
       id: 2,
       name: '청바지',
+      seller: '멋진회사',
       category: '의류',
       price: 59000,
       stock: 50,
-      status: '품절'
+      status: '판매중',
+      minStock: 20
     }
   ]);
 
-  const [open, setOpen] = useState(false);
-  const [newProduct, setNewProduct] = useState({
-    name: '',
-    category: '',
-    price: '',
-    stock: '',
-    status: '판매중'
-  });
+  const [notifyDialog, setNotifyDialog] = useState(false);
+  const [selectedProduct, setSelectedProduct] = useState(null);
 
-  const handleOpen = () => setOpen(true);
-  const handleClose = () => {
-    setOpen(false);
-    setNewProduct({
-      name: '',
-      category: '',
-      price: '',
-      stock: '',
-      status: '판매중'
-    });
+  const handleStatusChange = (productId, newStatus) => {
+    setProducts(products.map(product => 
+      product.id === productId ? { ...product, status: newStatus } : product
+    ));
   };
 
-  const handleAdd = () => {
-    setProducts([
-      ...products,
-      {
-        id: products.length + 1,
-        ...newProduct,
-        price: Number(newProduct.price),
-        stock: Number(newProduct.stock)
-      }
-    ]);
-    handleClose();
+  const handleNotify = (product) => {
+    setSelectedProduct(product);
+    setNotifyDialog(true);
   };
 
-  const handleDelete = (id) => {
-    if(window.confirm('정말 삭제하시겠습니까?')) {
-      setProducts(products.filter(product => product.id !== id));
-    }
+  const sendNotification = () => {
+    // API 호출로 판매자에게 알림 전송
+    console.log(`재고 부족 알림 전송: ${selectedProduct.seller}님, ${selectedProduct.name} 상품의 재고가 부족합니다.`);
+    setNotifyDialog(false);
   };
 
   return (
     <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px' }}>
-        <h2>상품 관리</h2>
-        <Button variant="contained" color="primary" onClick={handleOpen}>
-          상품 등록
-        </Button>
-      </div>
-
+      <h2>상품 관리</h2>
       <TableContainer component={Paper}>
         <Table>
           <TableHead>
             <TableRow>
-              <TableCell>ID</TableCell>
               <TableCell>상품명</TableCell>
+              <TableCell>판매자</TableCell>
               <TableCell>카테고리</TableCell>
               <TableCell>가격</TableCell>
               <TableCell>재고</TableCell>
@@ -104,29 +83,49 @@ function InventoryManagement() {
           </TableHead>
           <TableBody>
             {products.map((product) => (
-              <TableRow key={product.id}>
-                <TableCell>{product.id}</TableCell>
+              <TableRow 
+                key={product.id}
+                sx={{
+                  backgroundColor: product.stock < product.minStock ? '#fff3e0' : 'inherit'
+                }}
+              >
                 <TableCell>{product.name}</TableCell>
+                <TableCell>{product.seller}</TableCell>
                 <TableCell>{product.category}</TableCell>
                 <TableCell>{product.price.toLocaleString()}원</TableCell>
-                <TableCell>{product.stock}</TableCell>
-                <TableCell>{product.status}</TableCell>
                 <TableCell>
-                  <Button 
-                    variant="outlined" 
-                    size="small" 
-                    style={{ marginRight: '8px' }}
-                  >
-                    수정
-                  </Button>
-                  <Button 
-                    variant="outlined" 
-                    color="error" 
-                    size="small"
-                    onClick={() => handleDelete(product.id)}
-                  >
-                    삭제
-                  </Button>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    {product.stock}
+                    {product.stock < product.minStock && (
+                      <Typography color="error" variant="caption">
+                        (부족)
+                      </Typography>
+                    )}
+                  </Box>
+                </TableCell>
+                <TableCell>
+                  <FormControl size="small">
+                    <Select
+                      value={product.status}
+                      onChange={(e) => handleStatusChange(product.id, e.target.value)}
+                    >
+                      <MenuItem value="판매중">판매중</MenuItem>
+                      <MenuItem value="품절">품절</MenuItem>
+                      <MenuItem value="판매중지">판매중지</MenuItem>
+                    </Select>
+                  </FormControl>
+                </TableCell>
+                <TableCell>
+                  {product.stock < product.minStock && (
+                    <Button
+                      startIcon={<NotificationsIcon />}
+                      color="warning"
+                      size="small"
+                      onClick={() => handleNotify(product)}
+                    >
+                      재고 알림
+                    </Button>
+                  )}
                 </TableCell>
               </TableRow>
             ))}
@@ -134,71 +133,32 @@ function InventoryManagement() {
         </Table>
       </TableContainer>
 
-      <Dialog open={open} onClose={handleClose} maxWidth="md" fullWidth>
-        <DialogTitle>상품 등록</DialogTitle>
+      {/* 재고 알림 다이얼로그 */}
+      <Dialog open={notifyDialog} onClose={() => setNotifyDialog(false)}>
+        <DialogTitle>재고 부족 알림</DialogTitle>
         <DialogContent>
-          <Grid container spacing={2} style={{ marginTop: '8px' }}>
-            <Grid item xs={6}>
-              <TextField
-                fullWidth
-                label="상품명"
-                value={newProduct.name}
-                onChange={(e) => setNewProduct({...newProduct, name: e.target.value})}
-              />
-            </Grid>
-            <Grid item xs={6}>
-              <FormControl fullWidth>
-                <InputLabel>카테고리</InputLabel>
-                <Select
-                  value={newProduct.category}
-                  label="카테고리"
-                  onChange={(e) => setNewProduct({...newProduct, category: e.target.value})}
-                >
-                  <MenuItem value="의류">의류</MenuItem>
-                  <MenuItem value="신발">신발</MenuItem>
-                  <MenuItem value="액세서리">액세서리</MenuItem>
-                  <MenuItem value="전자기기">전자기기</MenuItem>
-                </Select>
-              </FormControl>
-            </Grid>
-            <Grid item xs={6}>
-              <TextField
-                fullWidth
-                label="가격"
-                type="number"
-                value={newProduct.price}
-                onChange={(e) => setNewProduct({...newProduct, price: e.target.value})}
-              />
-            </Grid>
-            <Grid item xs={6}>
-              <TextField
-                fullWidth
-                label="재고"
-                type="number"
-                value={newProduct.stock}
-                onChange={(e) => setNewProduct({...newProduct, stock: e.target.value})}
-              />
-            </Grid>
-            <Grid item xs={12}>
-              <FormControl fullWidth>
-                <InputLabel>상태</InputLabel>
-                <Select
-                  value={newProduct.status}
-                  label="상태"
-                  onChange={(e) => setNewProduct({...newProduct, status: e.target.value})}
-                >
-                  <MenuItem value="판매중">판매중</MenuItem>
-                  <MenuItem value="품절">품절</MenuItem>
-                  <MenuItem value="판매중지">판매중지</MenuItem>
-                </Select>
-              </FormControl>
-            </Grid>
-          </Grid>
+          <Alert severity="warning" sx={{ mt: 2 }}>
+            현재 재고가 기준치 이하입니다.
+          </Alert>
+          <Typography sx={{ mt: 2 }}>
+            {selectedProduct?.seller}님께 재고 부족 알림을 보내시겠습니까?
+          </Typography>
+          <Box sx={{ mt: 2 }}>
+            <Typography variant="body2">
+              상품명: {selectedProduct?.name}
+            </Typography>
+            <Typography variant="body2">
+              현재 재고: {selectedProduct?.stock}
+            </Typography>
+            <Typography variant="body2">
+              기준 재고: {selectedProduct?.minStock}
+            </Typography>
+          </Box>
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleClose}>취소</Button>
-          <Button onClick={handleAdd} variant="contained" color="primary">
-            등록
+          <Button onClick={() => setNotifyDialog(false)}>취소</Button>
+          <Button onClick={sendNotification} variant="contained" color="warning">
+            알림 전송
           </Button>
         </DialogActions>
       </Dialog>

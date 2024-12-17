@@ -27,23 +27,53 @@ function FaqManagement() {
   ]);
 
   const [open, setOpen] = useState(false);
+  const [editMode, setEditMode] = useState(false);
+  const [selectedFaq, setSelectedFaq] = useState(null);
   const [newFaq, setNewFaq] = useState({
     category: '',
     question: '',
     answer: ''
   });
 
-  const handleOpen = () => setOpen(true);
-  const handleClose = () => setOpen(false);
+  const handleOpen = (faq = null) => {
+    if (faq) {
+      setEditMode(true);
+      setSelectedFaq(faq);
+      setNewFaq({
+        category: faq.category,
+        question: faq.question,
+        answer: faq.answer
+      });
+    } else {
+      setEditMode(false);
+      setSelectedFaq(null);
+      setNewFaq({ category: '', question: '', answer: '' });
+    }
+    setOpen(true);
+  };
+
+  const handleClose = () => {
+    setOpen(false);
+    setEditMode(false);
+    setSelectedFaq(null);
+    setNewFaq({ category: '', question: '', answer: '' });
+  };
 
   const handleAdd = () => {
-    setFaqs([...faqs, { 
-      id: faqs.length + 1, 
-      ...newFaq, 
-      status: '게시중' 
-    }]);
+    if (editMode) {
+      setFaqs(faqs.map(faq => 
+        faq.id === selectedFaq.id 
+          ? { ...faq, ...newFaq }
+          : faq
+      ));
+    } else {
+      setFaqs([...faqs, { 
+        id: faqs.length + 1, 
+        ...newFaq, 
+        status: '게시중' 
+      }]);
+    }
     handleClose();
-    setNewFaq({ category: '', question: '', answer: '' });
   };
 
   const handleDelete = (id) => {
@@ -54,7 +84,7 @@ function FaqManagement() {
     <div>
       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px' }}>
         <h2>FAQ 관리</h2>
-        <Button variant="contained" color="primary" onClick={handleOpen}>
+        <Button variant="contained" color="primary" onClick={() => handleOpen()}>
           FAQ 등록
         </Button>
       </div>
@@ -80,7 +110,12 @@ function FaqManagement() {
                 <TableCell>{faq.answer}</TableCell>
                 <TableCell>{faq.status}</TableCell>
                 <TableCell>
-                  <Button variant="outlined" size="small" style={{ marginRight: '8px' }}>
+                  <Button 
+                    variant="outlined" 
+                    size="small" 
+                    style={{ marginRight: '8px' }}
+                    onClick={() => handleOpen(faq)}
+                  >
                     수정
                   </Button>
                   <Button 
@@ -99,7 +134,7 @@ function FaqManagement() {
       </TableContainer>
 
       <Dialog open={open} onClose={handleClose}>
-        <DialogTitle>FAQ 등록</DialogTitle>
+        <DialogTitle>{editMode ? 'FAQ 수정' : 'FAQ 등록'}</DialogTitle>
         <DialogContent>
           <FormControl fullWidth style={{ marginTop: '20px' }}>
             <InputLabel>카테고리</InputLabel>
@@ -133,7 +168,7 @@ function FaqManagement() {
         <DialogActions>
           <Button onClick={handleClose}>취소</Button>
           <Button onClick={handleAdd} variant="contained" color="primary">
-            등록
+            {editMode ? '수정' : '등록'}
           </Button>
         </DialogActions>
       </Dialog>

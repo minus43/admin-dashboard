@@ -38,31 +38,71 @@ function NoticeManagement() {
   ]);
 
   const [open, setOpen] = useState(false);
+  const [editMode, setEditMode] = useState(false);
+  const [selectedNotice, setSelectedNotice] = useState(null);
   const [newNotice, setNewNotice] = useState({
     title: '',
     content: '',
     important: false
   });
 
-  const handleOpen = () => setOpen(true);
-  const handleClose = () => setOpen(false);
+  const handleOpen = (notice = null) => {
+    if (notice) {
+      setEditMode(true);
+      setSelectedNotice(notice);
+      setNewNotice({
+        title: notice.title,
+        content: notice.content,
+        important: notice.important
+      });
+    } else {
+      setEditMode(false);
+      setSelectedNotice(null);
+      setNewNotice({ title: '', content: '', important: false });
+    }
+    setOpen(true);
+  };
 
-  const handleAdd = () => {
-    setNotices([...notices, { 
-      id: notices.length + 1, 
-      ...newNotice, 
-      createdAt: new Date().toISOString().split('T')[0],
-      status: '게시중'
-    }]);
-    handleClose();
+  const handleClose = () => {
+    setOpen(false);
+    setEditMode(false);
+    setSelectedNotice(null);
     setNewNotice({ title: '', content: '', important: false });
+  };
+
+  const handleSave = () => {
+    if (editMode) {
+      // 수정 로직
+      setNotices(notices.map(notice => 
+        notice.id === selectedNotice.id 
+          ? { 
+              ...notice, 
+              ...newNotice,
+              updatedAt: new Date().toISOString().split('T')[0]
+            }
+          : notice
+      ));
+    } else {
+      // 추가 로직
+      setNotices([...notices, { 
+        id: notices.length + 1, 
+        ...newNotice, 
+        createdAt: new Date().toISOString().split('T')[0],
+        status: '게시중'
+      }]);
+    }
+    handleClose();
+  };
+
+  const handleDelete = (id) => {
+    setNotices(notices.filter(notice => notice.id !== id));
   };
 
   return (
     <div>
       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px' }}>
         <h2>공지사항 관리</h2>
-        <Button variant="contained" color="primary" onClick={handleOpen}>
+        <Button variant="contained" color="primary" onClick={() => handleOpen()}>
           공지사항 등록
         </Button>
       </div>
@@ -88,10 +128,20 @@ function NoticeManagement() {
                 <TableCell>{notice.createdAt}</TableCell>
                 <TableCell>{notice.status}</TableCell>
                 <TableCell>
-                  <Button variant="outlined" size="small" style={{ marginRight: '8px' }}>
+                  <Button 
+                    variant="outlined" 
+                    size="small" 
+                    style={{ marginRight: '8px' }}
+                    onClick={() => handleOpen(notice)}
+                  >
                     수정
                   </Button>
-                  <Button variant="outlined" color="error" size="small">
+                  <Button 
+                    variant="outlined" 
+                    color="error" 
+                    size="small"
+                    onClick={() => handleDelete(notice.id)}
+                  >
                     삭제
                   </Button>
                 </TableCell>
@@ -102,7 +152,7 @@ function NoticeManagement() {
       </TableContainer>
 
       <Dialog open={open} onClose={handleClose} maxWidth="md" fullWidth>
-        <DialogTitle>공지사항 등록</DialogTitle>
+        <DialogTitle>{editMode ? '공지사항 수정' : '공지사항 등록'}</DialogTitle>
         <DialogContent>
           <TextField
             margin="dense"
@@ -132,8 +182,8 @@ function NoticeManagement() {
         </DialogContent>
         <DialogActions>
           <Button onClick={handleClose}>취소</Button>
-          <Button onClick={handleAdd} variant="contained" color="primary">
-            등록
+          <Button onClick={handleSave} variant="contained" color="primary">
+            {editMode ? '수정' : '등록'}
           </Button>
         </DialogActions>
       </Dialog>

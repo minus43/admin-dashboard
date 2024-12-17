@@ -72,6 +72,19 @@ function CouponManagement() {
     minPurchaseAmount: ''
   });
 
+  const [isEdit, setIsEdit] = useState(false);
+  const [currentCoupon, setCurrentCoupon] = useState({
+    id: null,
+    name: '',
+    discountType: 'percentage',
+    discountValue: '',
+    minOrderAmount: '',
+    maxDiscountAmount: '',
+    startDate: '',
+    endDate: '',
+    status: 'active'
+  });
+
   const handleOpen = () => setOpen(true);
   const handleClose = () => {
     setOpen(false);
@@ -98,23 +111,58 @@ function CouponManagement() {
     });
   };
 
-  const handleAdd = () => {
-    setCoupons([
-      ...coupons,
-      {
-        id: coupons.length + 1,
-        ...newCoupon,
-        issuedCount: 0,
-        usedCount: 0
-      }
-    ]);
-    handleClose();
-  };
-
+  
   const handleBatchIssue = () => {
     // 실제로는 서버에 배치 작업 요청을 보내야 함
     alert(`${batchConfig.targetUserCount}명의 사용자에게 쿠폰 발급 작업이 시작되었습니다.`);
     handleBatchClose();
+  };
+
+  const handleEdit = (coupon) => {
+    setIsEdit(true);
+    setCurrentCoupon({
+      id: coupon.id,
+      name: coupon.name,
+      discountType: coupon.discountType,
+      discountValue: coupon.discountValue,
+      minOrderAmount: coupon.minOrderAmount,
+      maxDiscountAmount: coupon.maxDiscountAmount,
+      startDate: coupon.startDate,
+      endDate: coupon.endDate,
+      status: coupon.status
+    });
+    setOpen(true);
+  };
+
+  const handleSave = () => {
+    if (isEdit) {
+      setCoupons(coupons.map(coupon =>
+        coupon.id === currentCoupon.id ? {
+          ...currentCoupon,
+          issuedCount: coupon.issuedCount,
+          usedCount: coupon.usedCount
+        } : coupon
+      ));
+    } else {
+      setCoupons([
+        ...coupons,
+        {
+          id: coupons.length + 1,
+          ...newCoupon,
+          issuedCount: 0,
+          usedCount: 0
+        }
+      ]);
+    }
+    handleClose();
+  };
+
+  const handleStop = (id) => {
+    if(window.confirm('쿠폰을 중지하시겠습니까?')) {
+      setCoupons(coupons.map(coupon =>
+        coupon.id === id ? { ...coupon, status: 'inactive' } : coupon
+      ));
+    }
   };
 
   return (
@@ -182,6 +230,7 @@ function CouponManagement() {
                     variant="outlined" 
                     size="small" 
                     style={{ marginRight: '8px' }}
+                    onClick={() => handleEdit(coupon)}
                   >
                     수정
                   </Button>
@@ -189,6 +238,8 @@ function CouponManagement() {
                     variant="outlined" 
                     color="error" 
                     size="small"
+                    onClick={() => handleStop(coupon.id)}
+                    disabled={coupon.status === 'inactive'}
                   >
                     중지
                   </Button>
@@ -199,26 +250,32 @@ function CouponManagement() {
         </Table>
       </TableContainer>
 
-      {/* 쿠폰 등록 다이얼로그 */}
+      {/* 쿠폰 등록/수정 다이얼로그 */}
       <Dialog open={open} onClose={handleClose} maxWidth="md" fullWidth>
-        <DialogTitle>쿠폰 등록</DialogTitle>
+        <DialogTitle>{isEdit ? '쿠폰 수정' : '쿠폰 등록'}</DialogTitle>
         <DialogContent>
           <Grid container spacing={2} style={{ marginTop: '8px' }}>
             <Grid item xs={12}>
               <TextField
                 fullWidth
                 label="쿠폰명"
-                value={newCoupon.name}
-                onChange={(e) => setNewCoupon({...newCoupon, name: e.target.value})}
+                value={isEdit ? currentCoupon.name : newCoupon.name}
+                onChange={(e) => isEdit 
+                  ? setCurrentCoupon({...currentCoupon, name: e.target.value})
+                  : setNewCoupon({...newCoupon, name: e.target.value})
+                }
               />
             </Grid>
             <Grid item xs={6}>
               <FormControl fullWidth>
                 <InputLabel>할인 유형</InputLabel>
                 <Select
-                  value={newCoupon.discountType}
+                  value={isEdit ? currentCoupon.discountType : newCoupon.discountType}
                   label="할인 유형"
-                  onChange={(e) => setNewCoupon({...newCoupon, discountType: e.target.value})}
+                  onChange={(e) => isEdit 
+                    ? setCurrentCoupon({...currentCoupon, discountType: e.target.value})
+                    : setNewCoupon({...newCoupon, discountType: e.target.value})
+                  }
                 >
                   <MenuItem value="percentage">비율 할인</MenuItem>
                   <MenuItem value="fixed">정액 할인</MenuItem>
@@ -228,10 +285,13 @@ function CouponManagement() {
             <Grid item xs={6}>
               <TextField
                 fullWidth
-                label={newCoupon.discountType === 'percentage' ? '할인율(%)' : '할인금액(원)'}
+                label={isEdit ? currentCoupon.discountType === 'percentage' ? '할인율(%)' : '할인금액(원)' : newCoupon.discountType === 'percentage' ? '할인율(%)' : '할인금액(원)'}
                 type="number"
-                value={newCoupon.discountValue}
-                onChange={(e) => setNewCoupon({...newCoupon, discountValue: e.target.value})}
+                value={isEdit ? currentCoupon.discountValue : newCoupon.discountValue}
+                onChange={(e) => isEdit 
+                  ? setCurrentCoupon({...currentCoupon, discountValue: e.target.value})
+                  : setNewCoupon({...newCoupon, discountValue: e.target.value})
+                }
               />
             </Grid>
             <Grid item xs={6}>
@@ -239,8 +299,11 @@ function CouponManagement() {
                 fullWidth
                 label="최소주문금액"
                 type="number"
-                value={newCoupon.minOrderAmount}
-                onChange={(e) => setNewCoupon({...newCoupon, minOrderAmount: e.target.value})}
+                value={isEdit ? currentCoupon.minOrderAmount : newCoupon.minOrderAmount}
+                onChange={(e) => isEdit 
+                  ? setCurrentCoupon({...currentCoupon, minOrderAmount: e.target.value})
+                  : setNewCoupon({...newCoupon, minOrderAmount: e.target.value})
+                }
               />
             </Grid>
             <Grid item xs={6}>
@@ -248,8 +311,11 @@ function CouponManagement() {
                 fullWidth
                 label="최대할인금액"
                 type="number"
-                value={newCoupon.maxDiscountAmount}
-                onChange={(e) => setNewCoupon({...newCoupon, maxDiscountAmount: e.target.value})}
+                value={isEdit ? currentCoupon.maxDiscountAmount : newCoupon.maxDiscountAmount}
+                onChange={(e) => isEdit 
+                  ? setCurrentCoupon({...currentCoupon, maxDiscountAmount: e.target.value})
+                  : setNewCoupon({...newCoupon, maxDiscountAmount: e.target.value})
+                }
               />
             </Grid>
             <Grid item xs={6}>
@@ -257,8 +323,11 @@ function CouponManagement() {
                 fullWidth
                 label="시작일"
                 type="date"
-                value={newCoupon.startDate}
-                onChange={(e) => setNewCoupon({...newCoupon, startDate: e.target.value})}
+                value={isEdit ? currentCoupon.startDate : newCoupon.startDate}
+                onChange={(e) => isEdit 
+                  ? setCurrentCoupon({...currentCoupon, startDate: e.target.value})
+                  : setNewCoupon({...newCoupon, startDate: e.target.value})
+                }
                 InputLabelProps={{ shrink: true }}
               />
             </Grid>
@@ -267,8 +336,11 @@ function CouponManagement() {
                 fullWidth
                 label="종료일"
                 type="date"
-                value={newCoupon.endDate}
-                onChange={(e) => setNewCoupon({...newCoupon, endDate: e.target.value})}
+                value={isEdit ? currentCoupon.endDate : newCoupon.endDate}
+                onChange={(e) => isEdit 
+                  ? setCurrentCoupon({...currentCoupon, endDate: e.target.value})
+                  : setNewCoupon({...newCoupon, endDate: e.target.value})
+                }
                 InputLabelProps={{ shrink: true }}
               />
             </Grid>
@@ -276,8 +348,8 @@ function CouponManagement() {
         </DialogContent>
         <DialogActions>
           <Button onClick={handleClose}>취소</Button>
-          <Button onClick={handleAdd} variant="contained" color="primary">
-            등록
+          <Button onClick={handleSave} variant="contained" color="primary">
+            {isEdit ? '수정' : '등록'}
           </Button>
         </DialogActions>
       </Dialog>

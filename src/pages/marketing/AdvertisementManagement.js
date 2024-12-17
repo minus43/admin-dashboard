@@ -95,6 +95,17 @@ function AdvertisementManagement() {
     endDate: ''
   });
 
+  const [isEdit, setIsEdit] = useState(false);
+  const [currentAd, setCurrentAd] = useState({
+    id: null,
+    title: '',
+    imageUrl: '',
+    location: '',
+    startDate: '',
+    endDate: '',
+    status: ''
+  });
+
   const handleTabChange = (event, newValue) => {
     setTabValue(newValue);
   };
@@ -102,6 +113,16 @@ function AdvertisementManagement() {
   const handleOpen = () => setOpen(true);
   const handleClose = () => {
     setOpen(false);
+    setIsEdit(false);
+    setCurrentAd({
+      id: null,
+      title: '',
+      imageUrl: '',
+      location: '',
+      startDate: '',
+      endDate: '',
+      status: ''
+    });
     setNewAd({
       title: '',
       imageUrl: '',
@@ -111,17 +132,27 @@ function AdvertisementManagement() {
     });
   };
 
-  const handleAdd = () => {
-    setAds([
-      ...ads,
-      {
-        id: ads.length + 1,
-        ...newAd,
-        status: 'scheduled',
-        clicks: 0,
-        views: 0
-      }
-    ]);
+  const handleSave = () => {
+    if (isEdit) {
+      setAds(ads.map(ad =>
+        ad.id === currentAd.id ? {
+          ...currentAd,
+          clicks: ad.clicks,
+          views: ad.views
+        } : ad
+      ));
+    } else {
+      setAds([
+        ...ads,
+        {
+          id: ads.length + 1,
+          ...newAd,
+          status: 'scheduled',
+          clicks: 0,
+          views: 0
+        }
+      ]);
+    }
     handleClose();
   };
 
@@ -145,6 +176,26 @@ function AdvertisementManagement() {
 
     const config = statusConfig[status] || statusConfig.ended;
     return <Chip label={config.label} color={config.color} size="small" />;
+  };
+
+  const handleEdit = (ad) => {
+    setIsEdit(true);
+    setCurrentAd({
+      id: ad.id,
+      title: ad.title,
+      imageUrl: ad.imageUrl,
+      location: ad.location,
+      startDate: ad.startDate,
+      endDate: ad.endDate,
+      status: ad.status
+    });
+    setOpen(true);
+  };
+
+  const handleDelete = (id) => {
+    if(window.confirm('정말 삭제하시겠습니까?')) {
+      setAds(ads.filter(ad => ad.id !== id));
+    }
   };
 
   return (
@@ -207,6 +258,7 @@ function AdvertisementManagement() {
                       variant="outlined" 
                       size="small" 
                       style={{ marginRight: '8px', marginBottom: '4px' }}
+                      onClick={() => handleEdit(ad)}
                     >
                       수정
                     </Button>
@@ -214,6 +266,7 @@ function AdvertisementManagement() {
                       variant="outlined" 
                       color="error" 
                       size="small"
+                      onClick={() => handleDelete(ad.id)}
                     >
                       삭제
                     </Button>
@@ -287,32 +340,41 @@ function AdvertisementManagement() {
       </TabPanel>
 
       <Dialog open={open} onClose={handleClose} maxWidth="md" fullWidth>
-        <DialogTitle>광고 등록</DialogTitle>
+        <DialogTitle>{isEdit ? '광고 수정' : '광고 등록'}</DialogTitle>
         <DialogContent>
           <Grid container spacing={2} style={{ marginTop: '8px' }}>
             <Grid item xs={12}>
               <TextField
                 fullWidth
                 label="광고 제목"
-                value={newAd.title}
-                onChange={(e) => setNewAd({...newAd, title: e.target.value})}
+                value={isEdit ? currentAd.title : newAd.title}
+                onChange={(e) => isEdit 
+                  ? setCurrentAd({...currentAd, title: e.target.value})
+                  : setNewAd({...newAd, title: e.target.value})
+                }
               />
             </Grid>
             <Grid item xs={12}>
               <TextField
                 fullWidth
                 label="이미지 URL"
-                value={newAd.imageUrl}
-                onChange={(e) => setNewAd({...newAd, imageUrl: e.target.value})}
+                value={isEdit ? currentAd.imageUrl : newAd.imageUrl}
+                onChange={(e) => isEdit 
+                  ? setCurrentAd({...currentAd, imageUrl: e.target.value})
+                  : setNewAd({...newAd, imageUrl: e.target.value})
+                }
               />
             </Grid>
             <Grid item xs={12}>
               <FormControl fullWidth>
                 <InputLabel>광고 위치</InputLabel>
                 <Select
-                  value={newAd.location}
+                  value={isEdit ? currentAd.location : newAd.location}
                   label="광고 위치"
-                  onChange={(e) => setNewAd({...newAd, location: e.target.value})}
+                  onChange={(e) => isEdit
+                    ? setCurrentAd({...currentAd, location: e.target.value})
+                    : setNewAd({...newAd, location: e.target.value})
+                  }
                 >
                   <MenuItem value="main_page">메인 페이지</MenuItem>
                   <MenuItem value="category_page">카테고리 페이지</MenuItem>
@@ -325,8 +387,11 @@ function AdvertisementManagement() {
                 fullWidth
                 label="시작일"
                 type="date"
-                value={newAd.startDate}
-                onChange={(e) => setNewAd({...newAd, startDate: e.target.value})}
+                value={isEdit ? currentAd.startDate : newAd.startDate}
+                onChange={(e) => isEdit 
+                  ? setCurrentAd({...currentAd, startDate: e.target.value})
+                  : setNewAd({...newAd, startDate: e.target.value})
+                }
                 InputLabelProps={{ shrink: true }}
               />
             </Grid>
@@ -335,8 +400,11 @@ function AdvertisementManagement() {
                 fullWidth
                 label="종료일"
                 type="date"
-                value={newAd.endDate}
-                onChange={(e) => setNewAd({...newAd, endDate: e.target.value})}
+                value={isEdit ? currentAd.endDate : newAd.endDate}
+                onChange={(e) => isEdit 
+                  ? setCurrentAd({...currentAd, endDate: e.target.value})
+                  : setNewAd({...newAd, endDate: e.target.value})
+                }
                 InputLabelProps={{ shrink: true }}
               />
             </Grid>
@@ -344,8 +412,8 @@ function AdvertisementManagement() {
         </DialogContent>
         <DialogActions>
           <Button onClick={handleClose}>취소</Button>
-          <Button onClick={handleAdd} variant="contained" color="primary">
-            등록
+          <Button onClick={handleSave} variant="contained" color="primary">
+            {isEdit ? '수정' : '등록'}
           </Button>
         </DialogActions>
       </Dialog>

@@ -3,6 +3,12 @@ import { Link } from 'react-router-dom';
 function Sidebar() {
   const menuItems = [
     {
+      title: '대시보드',
+      subItems: [
+        { name: '대시보드', path: '/admin/dashboard' }
+      ]
+    },
+    {
       title: '회원관리',
       subItems: [
         { name: '사용자관리', path: '/admin/members/users' },

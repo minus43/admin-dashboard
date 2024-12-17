@@ -17,7 +17,11 @@ import {
   FormControlLabel,
   Grid,
   Card,
-  CardMedia
+  CardMedia,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem
 } from '@mui/material';
 
 function BannerManagement() {
@@ -45,7 +49,10 @@ function BannerManagement() {
   ]);
 
   const [open, setOpen] = useState(false);
-  const [newBanner, setNewBanner] = useState({
+
+
+  const [currentBanner, setCurrentBanner] = useState({
+    id: null,
     title: '',
     imageUrl: '',
     linkUrl: '',
@@ -55,30 +62,15 @@ function BannerManagement() {
     isActive: true
   });
 
+  const [isEdit, setIsEdit] = useState(false);
+
   const handleOpen = () => setOpen(true);
   const handleClose = () => {
     setOpen(false);
-    setNewBanner({
-      title: '',
-      imageUrl: '',
-      linkUrl: '',
-      startDate: '',
-      endDate: '',
-      position: 'main_top',
-      isActive: true
-    });
+    
   };
 
-  const handleAdd = () => {
-    setBanners([
-      ...banners,
-      {
-        id: banners.length + 1,
-        ...newBanner
-      }
-    ]);
-    handleClose();
-  };
+ 
 
   const handleToggleActive = (id) => {
     setBanners(banners.map(banner =>
@@ -90,6 +82,38 @@ function BannerManagement() {
     if(window.confirm('정말 삭제하시겠습니까?')) {
       setBanners(banners.filter(banner => banner.id !== id));
     }
+  };
+
+  const handleEdit = (banner) => {
+    setCurrentBanner({
+      id: banner.id,
+      title: banner.title,
+      imageUrl: banner.imageUrl,
+      linkUrl: banner.linkUrl,
+      startDate: banner.startDate,
+      endDate: banner.endDate,
+      position: banner.position,
+      isActive: banner.isActive
+    });
+    setIsEdit(true);
+    setOpen(true);
+  };
+
+  const handleSave = () => {
+    if (isEdit) {
+      setBanners(banners.map(banner =>
+        banner.id === currentBanner.id ? currentBanner : banner
+      ));
+    } else {
+      setBanners([
+        ...banners,
+        {
+          id: banners.length + 1,
+          ...currentBanner
+        }
+      ]);
+    }
+    handleClose();
   };
 
   return (
@@ -150,6 +174,7 @@ function BannerManagement() {
                     variant="outlined" 
                     size="small" 
                     style={{ marginRight: '8px' }}
+                    onClick={() => handleEdit(banner)}
                   >
                     수정
                   </Button>
@@ -176,33 +201,48 @@ function BannerManagement() {
               <TextField
                 fullWidth
                 label="배너 제목"
-                value={newBanner.title}
-                onChange={(e) => setNewBanner({...newBanner, title: e.target.value})}
+                value={currentBanner.title}
+                onChange={(e) => setCurrentBanner({...currentBanner, title: e.target.value})}
               />
             </Grid>
             <Grid item xs={12}>
               <TextField
                 fullWidth
                 label="이미지 URL"
-                value={newBanner.imageUrl}
-                onChange={(e) => setNewBanner({...newBanner, imageUrl: e.target.value})}
+                value={currentBanner.imageUrl}
+                onChange={(e) => setCurrentBanner({...currentBanner, imageUrl: e.target.value})}
               />
             </Grid>
             <Grid item xs={12}>
               <TextField
                 fullWidth
                 label="링크 URL"
-                value={newBanner.linkUrl}
-                onChange={(e) => setNewBanner({...newBanner, linkUrl: e.target.value})}
+                value={currentBanner.linkUrl}
+                onChange={(e) => setCurrentBanner({...currentBanner, linkUrl: e.target.value})}
               />
+            </Grid>
+            <Grid item xs={12}>
+              <FormControl fullWidth>
+                <InputLabel>배너 위치</InputLabel>
+                <Select
+                  value={currentBanner.position}
+                  label="배너 위치"
+                  onChange={(e) => setCurrentBanner({...currentBanner, position: e.target.value})}
+                >
+                  <MenuItem value="main_top">메인 상단</MenuItem>
+                  <MenuItem value="main_middle">메인 중단</MenuItem>
+                  <MenuItem value="main_bottom">메인 하단</MenuItem>
+                  <MenuItem value="category_top">카테고리 상단</MenuItem>
+                </Select>
+              </FormControl>
             </Grid>
             <Grid item xs={6}>
               <TextField
                 fullWidth
                 label="시작일"
                 type="date"
-                value={newBanner.startDate}
-                onChange={(e) => setNewBanner({...newBanner, startDate: e.target.value})}
+                value={currentBanner.startDate}
+                onChange={(e) => setCurrentBanner({...currentBanner, startDate: e.target.value})}
                 InputLabelProps={{ shrink: true }}
               />
             </Grid>
@@ -211,8 +251,8 @@ function BannerManagement() {
                 fullWidth
                 label="종료일"
                 type="date"
-                value={newBanner.endDate}
-                onChange={(e) => setNewBanner({...newBanner, endDate: e.target.value})}
+                value={currentBanner.endDate}
+                onChange={(e) => setCurrentBanner({...currentBanner, endDate: e.target.value})}
                 InputLabelProps={{ shrink: true }}
               />
             </Grid>
@@ -220,8 +260,8 @@ function BannerManagement() {
               <FormControlLabel
                 control={
                   <Switch
-                    checked={newBanner.isActive}
-                    onChange={(e) => setNewBanner({...newBanner, isActive: e.target.checked})}
+                    checked={currentBanner.isActive}
+                    onChange={(e) => setCurrentBanner({...currentBanner, isActive: e.target.checked})}
                     color="primary"
                   />
                 }
@@ -232,7 +272,7 @@ function BannerManagement() {
         </DialogContent>
         <DialogActions>
           <Button onClick={handleClose}>취소</Button>
-          <Button onClick={handleAdd} variant="contained" color="primary">
+          <Button onClick={handleSave} variant="contained" color="primary">
             등록
           </Button>
         </DialogActions>

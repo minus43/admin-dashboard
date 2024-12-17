@@ -5,9 +5,7 @@ import Dashboard from './pages/dashboard/Dashboard';
 
 // 회원관리
 import UserManagement from './pages/member/UserManagement';
-import UserDetail from './pages/member/UserDetail';
 import SellerManagement from './pages/member/SellerManagement';
-import SellerDetail from './pages/member/SellerDetail';
 
 // 고객센터
 import FaqManagement from './pages/customer/FaqManagement';
@@ -46,9 +44,7 @@ function App() {
           <Route path="members">
             <Route index element={<Navigate to="users" replace />} />
             <Route path="users" element={<UserManagement />} />
-            <Route path="users/:id" element={<UserDetail />} />
             <Route path="sellers" element={<SellerManagement />} />
-            <Route path="sellers/:id" element={<SellerDetail />} />
           </Route>
 
           {/* 고객센터 */}
