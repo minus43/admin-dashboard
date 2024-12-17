@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Button } from '@mui/material';
 
 function SellerManagement() {
+  const navigate = useNavigate();
   const [sellers, setSellers] = useState([]);
 
   useEffect(() => {
@@ -11,6 +13,17 @@ function SellerManagement() {
       { id: 2, name: '판매자2', businessNo: '234-56-78901', status: '승인완료' },
     ]);
   }, []);
+
+  const handleDetailClick = (sellerId) => {
+    navigate(`/admin/members/sellers/${sellerId}`);
+  };
+
+  const handleDelete = (sellerId) => {
+    // 삭제 확인 후 처리
+    if (window.confirm('정말로 이 판매자를 삭제하시겠습니까?')) {
+      setSellers(prev => prev.filter(seller => seller.id !== sellerId));
+    }
+  };
 
   return (
     <div>
@@ -34,9 +47,22 @@ function SellerManagement() {
                 <TableCell>{seller.businessNo}</TableCell>
                 <TableCell>{seller.status}</TableCell>
                 <TableCell>
-                  <Button variant="outlined" size="small">상세</Button>
-                  <Button variant="outlined" color="success" size="small">승인</Button>
-                  <Button variant="outlined" color="error" size="small">거부</Button>
+                  <Button 
+                    variant="outlined" 
+                    size="small" 
+                    onClick={() => handleDetailClick(seller.id)}
+                    sx={{ mr: 1 }}
+                  >
+                    상세
+                  </Button>
+                  <Button 
+                    variant="outlined" 
+                    color="error" 
+                    size="small"
+                    onClick={() => handleDelete(seller.id)}
+                  >
+                    삭제
+                  </Button>
                 </TableCell>
               </TableRow>
             ))}

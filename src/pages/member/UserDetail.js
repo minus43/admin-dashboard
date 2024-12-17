@@ -1,15 +1,19 @@
 import { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { 
   Card, 
   CardContent,  
   Grid, 
   Button,
-  TextField
+  TextField,
+  Box,
+  IconButton,
 } from '@mui/material';
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 
 function UserDetail() {
   const { id } = useParams();
+  const navigate = useNavigate();
   const [user, setUser] = useState({
     id: '',
     name: '',
@@ -33,9 +37,19 @@ function UserDetail() {
     });
   }, [id]);
 
+  const handleBack = () => {
+    navigate('/admin/members/users');
+  };
+
   return (
-    <div>
-      <h2>사용자 상세 정보</h2>
+    <Box>
+      <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
+        <IconButton onClick={handleBack} sx={{ mr: 1 }}>
+          <ArrowBackIcon />
+        </IconButton>
+        <h2 style={{ margin: 0 }}>사용자 상세 정보</h2>
+      </Box>
+
       <Card>
         <CardContent>
           <Grid container spacing={3}>
@@ -80,17 +94,17 @@ function UserDetail() {
               />
             </Grid>
           </Grid>
-          <div style={{ marginTop: '20px', textAlign: 'right' }}>
-            <Button variant="contained" color="primary" style={{ marginRight: '10px' }}>
+          <Box sx={{ mt: 3, display: 'flex', justifyContent: 'flex-end', gap: 1 }}>
+            <Button variant="contained" color="primary">
               수정
             </Button>
             <Button variant="contained" color="error">
               계정 비활성화
             </Button>
-          </div>
+          </Box>
         </CardContent>
       </Card>
-    </div>
+    </Box>
   );
 }
 

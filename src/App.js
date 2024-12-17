@@ -7,7 +7,6 @@ import Dashboard from './pages/dashboard/Dashboard';
 import UserManagement from './pages/member/UserManagement';
 import UserDetail from './pages/member/UserDetail';
 import SellerManagement from './pages/member/SellerManagement';
-import SellerValidation from './pages/member/SellerValidation';
 import SellerDetail from './pages/member/SellerDetail';
 
 // 고객센터
@@ -49,7 +48,6 @@ function App() {
             <Route path="users" element={<UserManagement />} />
             <Route path="users/:id" element={<UserDetail />} />
             <Route path="sellers" element={<SellerManagement />} />
-            <Route path="sellers/validation" element={<SellerValidation />} />
             <Route path="sellers/:id" element={<SellerDetail />} />
           </Route>
 

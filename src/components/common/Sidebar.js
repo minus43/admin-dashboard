@@ -6,8 +6,7 @@ function Sidebar() {
       title: '회원관리',
       subItems: [
         { name: '사용자관리', path: '/admin/members/users' },
-        { name: '판매자관리', path: '/admin/members/sellers' },
-        { name: '판매자 유효성 검사', path: '/admin/members/sellers/validation' }
+        { name: '판매자관리', path: '/admin/members/sellers' }
       ]
     },
     {

@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Button } from '@mui/material';
 
 function UserManagement() {
+  const navigate = useNavigate();
   const [users, setUsers] = useState([]);
 
   useEffect(() => {
@@ -12,12 +14,13 @@ function UserManagement() {
     ]);
   }, []);
 
+  const handleDetailClick = (userId) => {
+    navigate(`/admin/members/users/${userId}`);
+  };
+
   return (
     <div>
       <h2>사용자 관리</h2>
-      <Button variant="contained" color="primary">
-        신규 사용자 등록
-      </Button>
       <TableContainer component={Paper}>
         <Table>
           <TableHead>
@@ -37,7 +40,14 @@ function UserManagement() {
                 <TableCell>{user.email}</TableCell>
                 <TableCell>{user.status}</TableCell>
                 <TableCell>
-                  <Button variant="outlined" size="small">상세</Button>
+                  <Button 
+                    variant="outlined" 
+                    size="small" 
+                    onClick={() => handleDetailClick(user.id)}
+                    sx={{ mr: 1 }}
+                  >
+                    상세
+                  </Button>
                   <Button variant="outlined" color="error" size="small">삭제</Button>
                 </TableCell>
               </TableRow>

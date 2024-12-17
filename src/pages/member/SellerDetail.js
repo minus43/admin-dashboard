@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { 
   Card, 
   CardContent, 
@@ -7,11 +7,21 @@ import {
   Grid, 
   Button,
   TextField,
-  Divider
+  Divider,
+  Box,
+  IconButton,
+  Chip,
+  Dialog,
+  DialogContent,
+  DialogTitle,
+  IconButton as MuiIconButton
 } from '@mui/material';
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import CloseIcon from '@mui/icons-material/Close';
 
 function SellerDetail() {
   const { id } = useParams();
+  const navigate = useNavigate();
   const [seller, setSeller] = useState({
     id: '',
     name: '',
@@ -20,7 +30,8 @@ function SellerDetail() {
     phone: '',
     address: '',
     joinDate: '',
-    status: '',
+    status: '승인대기',
+    businessRegistration: '',
     businessInfo: {
       companyName: '',
       representative: '',
@@ -28,6 +39,8 @@ function SellerDetail() {
       businessCategory: ''
     }
   });
+
+  const [imageOpen, setImageOpen] = useState(false);
 
   useEffect(() => {
     // API 호출 대신 임시 데이터
@@ -39,7 +52,8 @@ function SellerDetail() {
       phone: '010-9876-5432',
       address: '서울시 강남구',
       joinDate: '2023-01-01',
-      status: '활성',
+      status: '승인대기',
+      businessRegistration: 'https://example.com/path/to/business-registration.jpg',
       businessInfo: {
         companyName: '(주)판매회사',
         representative: '김대표',
@@ -49,11 +63,46 @@ function SellerDetail() {
     });
   }, [id]);
 
+  const handleBack = () => {
+    navigate('/admin/members/sellers');
+  };
+
+  const getStatusColor = (status) => {
+    switch (status) {
+      case '승인대기':
+        return 'warning';
+      case '승인완료':
+        return 'success';
+      case '승인거부':
+        return 'error';
+      default:
+        return 'default';
+    }
+  };
+
+  const handleStatusChange = (newStatus) => {
+    setSeller({ ...seller, status: newStatus });
+  };
+
   return (
-    <div>
-      <h2>판매자 상세 정보</h2>
+    <Box>
+      <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
+        <IconButton onClick={handleBack} sx={{ mr: 1 }}>
+          <ArrowBackIcon />
+        </IconButton>
+        <h2 style={{ margin: 0 }}>판매자 상세 정보</h2>
+      </Box>
+
       <Card>
         <CardContent>
+          <Box sx={{ mb: 3, display: 'flex', alignItems: 'center' }}>
+            <Typography variant="h6" sx={{ mr: 2 }}>현재 상태:</Typography>
+            <Chip 
+              label={seller.status}
+              color={getStatusColor(seller.status)}
+            />
+          </Box>
+
           <Typography variant="h6" gutterBottom>
             기본 정보
           </Typography>
@@ -130,19 +179,83 @@ function SellerDetail() {
                 disabled
               />
             </Grid>
+            <Grid item xs={12}>
+              <Button
+                variant="outlined"
+                onClick={() => setImageOpen(true)}
+                sx={{ mt: 1 }}
+              >
+                사업자 등록증 보기
+              </Button>
+            </Grid>
           </Grid>
 
-          <div style={{ marginTop: '20px', textAlign: 'right' }}>
-            <Button variant="contained" color="primary" style={{ marginRight: '10px' }}>
-              정보 수정
-            </Button>
-            <Button variant="contained" color="error">
-              계정 정지
-            </Button>
-          </div>
+          <Box sx={{ mt: 3, display: 'flex', justifyContent: 'flex-end', gap: 1 }}>
+            {seller.status === '승인대기' && (
+              <>
+                <Button 
+                  variant="contained" 
+                  color="success"
+                  onClick={() => handleStatusChange('승인완료')}
+                >
+                  승인
+                </Button>
+                <Button 
+                  variant="contained" 
+                  color="error"
+                  onClick={() => handleStatusChange('승인거부')}
+                >
+                  거부
+                </Button>
+              </>
+            )}
+            {seller.status === '승인완료' && (
+              <Button 
+                variant="contained" 
+                color="error"
+                onClick={() => handleStatusChange('승인거부')}
+              >
+                승인 취소
+              </Button>
+            )}
+          </Box>
         </CardContent>
       </Card>
-    </div>
+
+      <Dialog
+        open={imageOpen}
+        onClose={() => setImageOpen(false)}
+        maxWidth="md"
+        fullWidth
+      >
+        <DialogTitle>
+          사업자 등록증
+          <MuiIconButton
+            aria-label="close"
+            onClick={() => setImageOpen(false)}
+            sx={{
+              position: 'absolute',
+              right: 8,
+              top: 8,
+            }}
+          >
+            <CloseIcon />
+          </MuiIconButton>
+        </DialogTitle>
+        <DialogContent>
+          <img
+            src={seller.businessRegistration}
+            alt="사업자 등록증"
+            style={{
+              width: '100%',
+              height: 'auto',
+              maxHeight: '80vh',
+              objectFit: 'contain'
+            }}
+          />
+        </DialogContent>
+      </Dialog>
+    </Box>
   );
 }
 
