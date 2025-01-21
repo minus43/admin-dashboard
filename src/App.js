@@ -22,7 +22,6 @@ import OrderManagement from './pages/order/OrderManagement';
 // 마케팅
 import BannerManagement from './pages/marketing/BannerManagement';
 import CouponManagement from './pages/marketing/CouponManagement';
-import AdvertisementManagement from './pages/marketing/AdvertisementManagement';
 
 function App() {
   return (
@@ -67,7 +66,6 @@ function App() {
             <Route index element={<Navigate to="banners" replace />} />
             <Route path="banners" element={<BannerManagement />} />
             <Route path="coupons" element={<CouponManagement />} />
-            <Route path="advertisements" element={<AdvertisementManagement />} />
           </Route>
         </Route>
       </Routes>

@@ -41,7 +41,6 @@ function Sidebar() {
       subItems: [
         { name: '배너관리', path: '/admin/marketing/banners' },
         { name: '쿠폰관리', path: '/admin/marketing/coupons' },
-        { name: '광고관리', path: '/admin/marketing/advertisements' }
       ]
     }
   ];
